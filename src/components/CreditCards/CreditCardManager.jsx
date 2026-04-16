@@ -299,8 +299,13 @@ export default function CreditCardManager() {
                     </button>
                   </div>
                   <button onClick={() => setExpandedCard(expanded ? null : card.id)}
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
-                    {txList.length} lançamento(s) total
+                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700">
+                    <span>{txList.length} lançamento(s)</span>
+                    {txList.length > 0 && (
+                      <span className="font-semibold text-red-600">
+                        · {formatCurrency(txList.reduce((s, t) => s + t.amount, 0))}
+                      </span>
+                    )}
                     {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
                 </div>
@@ -342,6 +347,27 @@ export default function CreditCardManager() {
                             </div>
                           );
                         })}
+                        {/* Running total footer */}
+                        {txList.length > 0 && (() => {
+                          const totalAll = txList.reduce((s, t) => s + t.amount, 0);
+                          const totalCurrent = txList
+                            .filter(t => t.billingMonth === currentMonth && t.billingYear === currentYear)
+                            .reduce((s, t) => s + t.amount, 0);
+                          return (
+                            <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-slate-500">Fatura {MONTHS[currentMonth - 1]}/{currentYear}</span>
+                                <span className="text-sm font-bold text-red-600">{formatCurrency(totalCurrent)}</span>
+                              </div>
+                              {totalAll !== totalCurrent && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs text-slate-400">Total geral ({txList.length} lançamentos)</span>
+                                  <span className="text-xs font-semibold text-slate-600">{formatCurrency(totalAll)}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>

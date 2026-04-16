@@ -41,6 +41,8 @@ function SummaryCard({ title, value, icon: Icon, color, sub }) {
 export default function Dashboard() {
   const { state, computed } = useFinance();
   const { currentMonth, currentYear, categories, creditCards } = state;
+  // Key changes whenever categories are edited — forces Chart.js to remount and pick up new names/colors
+  const categoriesKey = categories.map(c => `${c.id}${c.name}${c.color}${c.icon}`).join('|');
   const {
     totalIncome, totalExpenses, balance, totalCCExp,
     expensesByCategory, exceededGoals, history, cardUsage
@@ -133,7 +135,7 @@ export default function Dashboard() {
           {catEntries.length > 0 ? (
             <div className="flex justify-center">
               <div style={{ width: '100%', maxWidth: 300 }}>
-                <Doughnut data={doughnutData} options={{ ...chartOpts, cutout: '65%' }} />
+                <Doughnut key={categoriesKey} data={doughnutData} options={{ ...chartOpts, cutout: '65%' }} />
               </div>
             </div>
           ) : (
@@ -146,14 +148,14 @@ export default function Dashboard() {
         {/* Income vs Expenses Bar */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
           <h3 className="font-semibold text-slate-700 mb-4 text-sm uppercase tracking-wide">Receitas vs Despesas</h3>
-          <Bar data={barData} options={barOpts} />
+          <Bar key={`bar-${categoriesKey}`} data={barData} options={barOpts} />
         </div>
       </div>
 
       {/* Balance Line Chart */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-4">
         <h3 className="font-semibold text-slate-700 mb-4 text-sm uppercase tracking-wide">Evolução do Saldo (últimos 6 meses)</h3>
-        <Line data={lineData} options={lineOpts} />
+        <Line key={`line-${categoriesKey}`} data={lineData} options={lineOpts} />
       </div>
 
       {/* Credit Card Summary */}
