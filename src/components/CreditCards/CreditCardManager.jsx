@@ -246,10 +246,10 @@ export default function CreditCardManager() {
       ) : (
         <div className="space-y-4">
           {creditCards.map(card => {
-            const used = cardUsage[card.id] || 0;
+            const txList = allTxByCard(card.id);
+            const used = txList.reduce((s, t) => s + t.amount, 0);
             const pct = card.limit > 0 ? Math.min((used / card.limit) * 100, 100) : 0;
             const barColor = pct > 85 ? 'bg-red-500' : pct > 60 ? 'bg-amber-500' : 'bg-green-500';
-            const txList = allTxByCard(card.id);
             const expanded = expandedCard === card.id;
 
             return (
