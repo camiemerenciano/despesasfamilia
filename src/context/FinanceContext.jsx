@@ -160,10 +160,9 @@ export function FinanceProvider({ children }) {
     const { currentMonth: m, currentYear: y } = state;
     const base = computePeriodTotals(state, m, y);
 
-    // Category breakdown for current period:
-    // uses direct expenses for current month + ALL CC transactions (regardless of billing month)
+    // Category breakdown — ALL direct expenses + ALL CC transactions (consistent, no period filter)
     const expensesByCategory = {};
-    base.periodExpenses.forEach(item => {
+    state.expenses.forEach(item => {
       const catId = item.categoryId || 'cat-10';
       expensesByCategory[catId] = (expensesByCategory[catId] || 0) + item.amount;
     });
@@ -198,6 +197,10 @@ export function FinanceProvider({ children }) {
     // Total CC spending across all cards (all transactions)
     const totalAllCCExp = state.creditCardTransactions.reduce((s, t) => s + t.amount, 0);
 
+    // Real totals: direct expenses + ALL CC (used for dashboard summary)
+    const totalExpensesReal = base.totalDirectExp + totalAllCCExp;
+    const balanceReal = base.totalIncome - totalExpensesReal;
+
     // Historical data – last 6 months
     const history = [];
     for (let i = 5; i >= 0; i--) {
@@ -206,7 +209,7 @@ export function FinanceProvider({ children }) {
       history.push({ month: hm, year: hy, label: `${MONTH_SHORT[hm - 1]}/${String(hy).slice(2)}`, ...h });
     }
 
-    return { ...base, expensesByCategory, periodGoals, exceededGoals, cardUsage, totalAllCCExp, history };
+    return { ...base, expensesByCategory, periodGoals, exceededGoals, cardUsage, totalAllCCExp, totalExpensesReal, balanceReal, history };
   }, [state]);
 
   // ── Actions ────────────────────────────────────────────────────────────────
