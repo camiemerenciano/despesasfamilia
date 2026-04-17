@@ -160,6 +160,18 @@ export function FinanceProvider({ children }) {
     const { currentMonth: m, currentYear: y } = state;
     const base = computePeriodTotals(state, m, y);
 
+    // Category breakdown for current period:
+    // uses direct expenses for current month + ALL CC transactions (regardless of billing month)
+    const expensesByCategory = {};
+    base.periodExpenses.forEach(item => {
+      const catId = item.categoryId || 'cat-10';
+      expensesByCategory[catId] = (expensesByCategory[catId] || 0) + item.amount;
+    });
+    state.creditCardTransactions.forEach(t => {
+      const catId = t.categoryId || 'cat-10';
+      expensesByCategory[catId] = (expensesByCategory[catId] || 0) + t.amount;
+    });
+
     // Goals for current period (global or month-specific)
     const periodGoals = state.goals.filter(g =>
       g.isGlobal || (g.month === m && g.year === y)
@@ -167,7 +179,7 @@ export function FinanceProvider({ children }) {
 
     const exceededGoals = {};
     periodGoals.forEach(goal => {
-      const spent = base.expensesByCategory[goal.categoryId] || 0;
+      const spent = expensesByCategory[goal.categoryId] || 0;
       if (spent > goal.amount) {
         exceededGoals[goal.categoryId] = {
           spent,
@@ -194,7 +206,7 @@ export function FinanceProvider({ children }) {
       history.push({ month: hm, year: hy, label: `${MONTH_SHORT[hm - 1]}/${String(hy).slice(2)}`, ...h });
     }
 
-    return { ...base, periodGoals, exceededGoals, cardUsage, totalAllCCExp, history };
+    return { ...base, expensesByCategory, periodGoals, exceededGoals, cardUsage, totalAllCCExp, history };
   }, [state]);
 
   // ── Actions ────────────────────────────────────────────────────────────────

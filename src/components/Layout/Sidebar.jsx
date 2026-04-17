@@ -15,27 +15,16 @@ const NAV_ITEMS = [
   { id: 'goals',       label: 'Metas',            icon: Target },
 ];
 
-export default function Sidebar({ currentPage, onNavigate }) {
-  const { state, actions, computed } = useFinance();
-  const { currentMonth, currentYear } = state;
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const prevMonth = () => {
-    const { month, year } = { month: currentMonth, year: currentYear };
-    if (month === 1) actions.setPeriod(12, year - 1);
-    else actions.setPeriod(month - 1, year);
-  };
-
-  const nextMonth = () => {
-    const { month, year } = { month: currentMonth, year: currentYear };
-    if (month === 12) actions.setPeriod(1, year + 1);
-    else actions.setPeriod(month + 1, year);
-  };
-
-  const hasExceeded = Object.keys(computed.exceededGoals).length > 0;
-
-  const SidebarContent = () => (
+// ─── SidebarContent is defined OUTSIDE Sidebar so React keeps a stable identity ─
+function SidebarContent({
+  currentPage, onNavigate,
+  collapsed, setCollapsed,
+  currentMonth, currentYear,
+  onPrevMonth, onNextMonth,
+  hasExceeded, exceededCount,
+  setMobileOpen,
+}) {
+  return (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-700/50 ${collapsed ? 'justify-center' : ''}`}>
@@ -74,9 +63,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
               `}
             >
               <Icon size={18} className="flex-shrink-0" />
-              {!collapsed && (
-                <span className="flex-1 text-left">{label}</span>
-              )}
+              {!collapsed && <span className="flex-1 text-left">{label}</span>}
               {!collapsed && showAlert && (
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               )}
@@ -89,27 +76,64 @@ export default function Sidebar({ currentPage, onNavigate }) {
       <div className={`px-3 pb-4 border-t border-slate-700/50 pt-4 ${collapsed ? 'hidden' : ''}`}>
         <p className="text-slate-500 text-xs font-medium mb-2 px-1">PERÍODO</p>
         <div className="flex items-center justify-between bg-slate-700/50 rounded-xl px-2 py-2">
-          <button onClick={prevMonth} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors">
+          <button
+            onClick={onPrevMonth}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors"
+          >
             <ChevronLeft size={16} />
           </button>
           <div className="text-center">
             <p className="text-white text-sm font-semibold">{MONTHS[currentMonth - 1]}</p>
             <p className="text-slate-400 text-xs">{currentYear}</p>
           </div>
-          <button onClick={nextMonth} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors">
+          <button
+            onClick={onNextMonth}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors"
+          >
             <ChevronRight size={16} />
           </button>
         </div>
         {hasExceeded && (
           <div className="mt-2 px-3 py-2 bg-red-500/20 border border-red-500/40 rounded-xl">
             <p className="text-red-400 text-xs font-medium">
-              ⚠️ {Object.keys(computed.exceededGoals).length} meta(s) ultrapassada(s)
+              ⚠️ {exceededCount} meta(s) ultrapassada(s)
             </p>
           </div>
         )}
       </div>
     </div>
   );
+}
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+
+export default function Sidebar({ currentPage, onNavigate }) {
+  const { state, actions, computed } = useFinance();
+  const { currentMonth, currentYear } = state;
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const onPrevMonth = () => {
+    if (currentMonth === 1) actions.setPeriod(12, currentYear - 1);
+    else actions.setPeriod(currentMonth - 1, currentYear);
+  };
+
+  const onNextMonth = () => {
+    if (currentMonth === 12) actions.setPeriod(1, currentYear + 1);
+    else actions.setPeriod(currentMonth + 1, currentYear);
+  };
+
+  const exceededCount = Object.keys(computed.exceededGoals).length;
+  const hasExceeded = exceededCount > 0;
+
+  const contentProps = {
+    currentPage, onNavigate,
+    collapsed, setCollapsed,
+    currentMonth, currentYear,
+    onPrevMonth, onNextMonth,
+    hasExceeded, exceededCount,
+    setMobileOpen,
+  };
 
   return (
     <>
@@ -132,7 +156,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
             >
               <X size={18} />
             </button>
-            <SidebarContent />
+            <SidebarContent {...contentProps} />
           </div>
         </div>
       )}
@@ -143,7 +167,7 @@ export default function Sidebar({ currentPage, onNavigate }) {
           ${collapsed ? 'w-16' : 'w-60'}
         `}
       >
-        <SidebarContent />
+        <SidebarContent {...contentProps} />
       </aside>
     </>
   );
