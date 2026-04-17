@@ -87,7 +87,8 @@ function CardForm({ initial, onSave, onCancel }) {
 
 const EMPTY_TX = { description: '', amount: '', categoryId: 'cat-10', date: todayISO(), installments: 1 };
 
-function TxForm({ initial, onSave, onCancel, categories, card }) {
+function TxForm({ initial, onSave, onCancel, card }) {
+  const { state: { categories } } = useFinance();
   const [form, setForm] = useState({ ...initial, amount: initial.amount ? String(initial.amount) : '', installments: initial.installments || 1 });
   const [errors, setErrors] = useState({});
 
@@ -390,7 +391,6 @@ export default function CreditCardManager() {
             initial={editingTx || EMPTY_TX}
             onSave={handleSaveTx}
             onCancel={() => { setTxModal(false); setEditingTx(null); setActiveTxCard(null); }}
-            categories={categories}
             card={activeTxCard}
           />
         </Modal>

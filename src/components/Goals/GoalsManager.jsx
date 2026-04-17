@@ -12,7 +12,8 @@ const EMPTY_FORM = {
   year: new Date().getFullYear(),
 };
 
-function GoalForm({ initial, onSave, onCancel, categories, currentMonth, currentYear }) {
+function GoalForm({ initial, onSave, onCancel, currentMonth, currentYear }) {
+  const { state: { categories } } = useFinance();
   const [form, setForm] = useState({ ...initial, amount: initial.amount ? String(initial.amount) : '' });
   const [errors, setErrors] = useState({});
 
@@ -221,7 +222,6 @@ export default function GoalsManager() {
           initial={editing || { ...EMPTY_FORM, month: currentMonth, year: currentYear }}
           onSave={handleSave}
           onCancel={() => { setModalOpen(false); setEditing(null); }}
-          categories={categories}
           currentMonth={currentMonth}
           currentYear={currentYear}
         />

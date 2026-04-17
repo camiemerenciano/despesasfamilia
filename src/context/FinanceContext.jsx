@@ -13,7 +13,7 @@ const INITIAL_STATE = {
   goals: [],
   currentMonth: now.getMonth() + 1,
   currentYear: now.getFullYear(),
-  userNames: { user: 'Eu', spouse: 'Cônjuge' },
+  userNames: { user: 'Camila', spouse: 'Kayanne' },
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -91,7 +91,19 @@ function reducer(state, action) {
     case 'UPDATE_CATEGORY':
       return { ...state, categories: state.categories.map(c => c.id === action.payload.id ? action.payload : c) };
     case 'DELETE_CATEGORY':
-      return { ...state, categories: state.categories.filter(c => c.id !== action.id) };
+      return {
+        ...state,
+        categories: state.categories.filter(c => c.id !== action.id),
+        // Reassign all references to the deleted category → 'cat-10' (Outros)
+        expenses: state.expenses.map(e =>
+          e.categoryId === action.id ? { ...e, categoryId: 'cat-10' } : e
+        ),
+        creditCardTransactions: state.creditCardTransactions.map(t =>
+          t.categoryId === action.id ? { ...t, categoryId: 'cat-10' } : t
+        ),
+        // Remove goals that were tied to the deleted category
+        goals: state.goals.filter(g => g.categoryId !== action.id),
+      };
 
     // ── Goals ──
     case 'ADD_GOAL':
@@ -144,7 +156,13 @@ export function FinanceProvider({ children }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('family-finance-v1');
-      if (saved) dispatch({ type: 'LOAD_STATE', payload: JSON.parse(saved) });
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Migrate old default names to the new ones
+        if (parsed.userNames?.user === 'Eu') parsed.userNames.user = 'Camila';
+        if (parsed.userNames?.spouse === 'Cônjuge') parsed.userNames.spouse = 'Kayanne';
+        dispatch({ type: 'LOAD_STATE', payload: parsed });
+      }
     } catch (_) {}
   }, []);
 
