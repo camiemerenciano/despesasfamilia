@@ -177,13 +177,14 @@ export function FinanceProvider({ children }) {
       }
     });
 
-    // Credit card usage per card for current period
+    // Credit card usage per card — ALL transactions (ignores billing month filter)
     const cardUsage = {};
-    state.creditCardTransactions
-      .filter(t => t.billingMonth === m && t.billingYear === y)
-      .forEach(t => {
-        cardUsage[t.cardId] = (cardUsage[t.cardId] || 0) + t.amount;
-      });
+    state.creditCardTransactions.forEach(t => {
+      cardUsage[t.cardId] = (cardUsage[t.cardId] || 0) + t.amount;
+    });
+
+    // Total CC spending across all cards (all transactions)
+    const totalAllCCExp = state.creditCardTransactions.reduce((s, t) => s + t.amount, 0);
 
     // Historical data – last 6 months
     const history = [];
@@ -193,7 +194,7 @@ export function FinanceProvider({ children }) {
       history.push({ month: hm, year: hy, label: `${MONTH_SHORT[hm - 1]}/${String(hy).slice(2)}`, ...h });
     }
 
-    return { ...base, periodGoals, exceededGoals, cardUsage, history };
+    return { ...base, periodGoals, exceededGoals, cardUsage, totalAllCCExp, history };
   }, [state]);
 
   // ── Actions ────────────────────────────────────────────────────────────────

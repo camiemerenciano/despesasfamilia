@@ -44,8 +44,8 @@ export default function Dashboard() {
   // Key changes whenever categories are edited — forces Chart.js to remount and pick up new names/colors
   const categoriesKey = categories.map(c => `${c.id}${c.name}${c.color}${c.icon}`).join('|');
   const {
-    totalIncome, totalExpenses, balance, totalCCExp,
-    expensesByCategory, exceededGoals, history, cardUsage
+    totalIncome, totalExpenses, balance,
+    totalAllCCExp, expensesByCategory, exceededGoals, history, cardUsage
   } = computed;
 
   const monthName = MONTHS[currentMonth - 1];
@@ -122,9 +122,9 @@ export default function Dashboard() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <SummaryCard title="Receita Total" value={totalIncome} icon={TrendingUp} color="text-green-600" sub="Este mês" />
-        <SummaryCard title="Despesas Total" value={totalExpenses} icon={TrendingDown} color="text-red-600" sub={`CC: ${formatCurrency(totalCCExp)}`} />
+        <SummaryCard title="Despesas Total" value={totalExpenses} icon={TrendingDown} color="text-red-600" sub={`CC: ${formatCurrency(totalAllCCExp)}`} />
         <SummaryCard title="Saldo" value={balance} icon={Wallet} color={balance >= 0 ? 'text-blue-600' : 'text-red-600'} sub={balance >= 0 ? 'Positivo ✓' : 'Negativo !'} />
-        <SummaryCard title="Cartões" value={totalCCExp} icon={CreditCard} color="text-slate-600" sub={`${creditCards.length} cartão(ões)`} />
+        <SummaryCard title="Cartões" value={totalAllCCExp} icon={CreditCard} color="text-slate-600" sub={`${creditCards.length} cartão(ões)`} />
       </div>
 
       {/* Charts row 1 */}
